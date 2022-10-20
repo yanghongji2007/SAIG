@@ -1,0 +1,2 @@
+model,top1,top1_err,top5,top5_err,param_count,img_size,cropt_pct,interpolation,checkpoint
+vit_base_patch16_224,67.628,32.372,88.184,11.816,55.61,224,0.9,bicubic,/data/zhuyingying/swin_transformer/pytorch-image-models-master/output/20210902-122430-vit_base_patch16_224-224/checkpoint-33.pth.tar
