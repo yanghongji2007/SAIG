@@ -222,6 +222,8 @@ def valid(args, model_grd, model_sat, writer, test_loader_grd, test_loader_sat, 
             x_grd = x_grd.cuda()
             with torch.cuda.amp.autocast():
                 grd_global = model_grd(x_grd)
+                if args.pool == 'GAP':
+                    grd_global = nn.AdaptiveAvgPool1d(1)(grd_global.transpose(-1, -2)).squeeze(2)
                 grd_global = F.normalize(grd_global, dim=1)
                 
             grd_global_descriptor[val_i: val_i + grd_global.shape[0], :] = grd_global.detach()
@@ -234,6 +236,8 @@ def valid(args, model_grd, model_sat, writer, test_loader_grd, test_loader_sat, 
             x_sat = x_sat.cuda()
             with torch.cuda.amp.autocast():
                 sat_global = model_sat(x_sat)
+                if args.pool == 'GAP':
+                    sat_global = nn.AdaptiveAvgPool1d(1)(sat_global.transpose(-1, -2)).squeeze(2)
                 sat_global = F.normalize(sat_global, dim=1)
             sat_global_descriptor[val_i: val_i + sat_global.shape[0], :] = sat_global.detach()
 
@@ -392,6 +396,9 @@ def train(args, model_grd, model_sat):
                 
             grd_global = model_grd(x_grd)
             sat_global = model_sat(x_sat)
+            if args.pool == 'GAP':
+                grd_global = nn.AdaptiveAvgPool1d(1)(grd_global.transpose(-1, -2)).squeeze(2)
+                sat_global = nn.AdaptiveAvgPool1d(1)(sat_global.transpose(-1, -2)).squeeze(2)
             grd_global = F.normalize(grd_global, dim=1)
             sat_global = F.normalize(sat_global, dim=1)
             loss = criterion(grd_global, sat_global, args)

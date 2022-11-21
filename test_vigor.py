@@ -14,7 +14,6 @@ import argparse
 from timm.models.SAIG import SAIG_Deep, SAIG_Shallow, resize_pos_embed
 
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '4'
 
 
 def validate(dist_array, top_k):
@@ -221,6 +220,8 @@ with torch.no_grad():
         x_grd = x_grd.cuda()
         with torch.cuda.amp.autocast():
             grd_global = model_grd(x_grd)
+            if args.pool == 'GAP':
+                grd_global = nn.AdaptiveAvgPool1d(1)(grd_global.transpose(-1, -2)).squeeze(2)
             grd_global = F.normalize(grd_global, dim=1)
         grd_global_descriptor[val_i: val_i + grd_global.shape[0], :] = grd_global.detach()
 
@@ -231,6 +232,8 @@ with torch.no_grad():
         x_sat = x_sat.cuda()
         with torch.cuda.amp.autocast():
             sat_global = model_sat(x_sat)
+            if args.pool == 'GAP':
+                sat_global = nn.AdaptiveAvgPool1d(1)(sat_global.transpose(-1, -2)).squeeze(2)
             sat_global = F.normalize(sat_global, dim=1)
         sat_global_descriptor[val_i: val_i + sat_global.shape[0], :] = sat_global.detach()
 
@@ -247,6 +250,8 @@ sat_global_descriptor = sat_global_descriptor.cpu().numpy()
 accuracy = 0.0
 accuracy_top1 = 0.0
 accuracy_top5 = 0.0
+accuracy_top10 = 0.0
+accuracy_top100 = 0.0
 accuracy_hit = 0.0
 
 data_amount = 0.0
@@ -258,6 +263,9 @@ print(dist_array.shape)
 top1_percent = int(dist_array.shape[1] * 0.01) + 1
 top1 = 1
 top5 = 5
+top10 = 10
+top100 = 100
+
 for i in range(dist_array.shape[0]):
     gt_dist = dist_array[i, test_loader_grd.dataset.test_label[i][0]] # positive sat
 
@@ -275,6 +283,10 @@ for i in range(dist_array.shape[0]):
         accuracy_top1 += 1.0
     if prediction < top5:
         accuracy_top5 += 1.0
+    if prediction < top10:
+        accuracy_top10 += 1.0
+    if prediction < top100:
+        accuracy_top100 += 1.0
     if prediction_hit < top1:
         accuracy_hit += 1.0
     data_amount += 1.0
@@ -282,7 +294,9 @@ for i in range(dist_array.shape[0]):
 accuracy /= data_amount
 accuracy_top1 /= data_amount
 accuracy_top5 /= data_amount
+accuracy_top10 /= data_amount
+accuracy_top100 /= data_amount
 accuracy_hit /= data_amount
 
-print('accuracy = %.2f%% , top1: %.2f%%, top5: %.2f%%, hit_rate: %.2f%%' % (
-            accuracy * 100.0, accuracy_top1 * 100.0, accuracy_top5 * 100.0, accuracy_hit * 100.0))
+print('accuracy = %.2f%% , top1: %.2f%%, top5: %.2f%%, top10: %.2f%%, top100: %.2f%%,hit_rate: %.2f%%' % (
+            accuracy * 100.0, accuracy_top1 * 100.0, accuracy_top5 * 100.0, accuracy_top10 * 100.0, accuracy_top100 * 100.0, accuracy_hit * 100.0))
