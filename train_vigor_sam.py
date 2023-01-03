@@ -12,8 +12,6 @@ from datetime import timedelta
 import torch
 import torch.nn as nn
 import torch.distributed as dist
-import utility
-from utility.bypass_bn import enable_running_stats, disable_running_stats
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 
@@ -21,7 +19,7 @@ from timm.models.SAIG import SAIG_Deep, SAIG_Shallow, resize_pos_embed
 
 from utils.scheduler import WarmupLinearSchedule, WarmupCosineSchedule, ConstantLRSchedule
 from utils.data_utils import get_loader
-from utils.loss import SoftTriHard, InfoNCE, triplet_loss
+from utils.loss import InfoNCE, triplet_loss, SemiSoftTriHard
 import math
 import itertools
 from utils.sam import SAM
@@ -327,7 +325,7 @@ def train(args, model_grd, model_sat):
     
     # Prepare optimizer and scheduler
     base_opt = torch.optim.AdamW
-    optimizer = SAM(itertools.chain(model_grd.parameters(), model_sat.parameters()), base_opt, 0.5, True, lr=args.learning_rate, weight_decay=args.weight_decay, momentum=0.9, nesterov=True)
+    optimizer = SAM(itertools.chain(model_grd.parameters(), model_sat.parameters()), base_opt, 2, True, lr=args.learning_rate, weight_decay=args.weight_decay)
 
     print(optimizer)
     if args.resume:
@@ -417,6 +415,9 @@ def train(args, model_grd, model_sat):
             
             grd_global_2 = model_grd(x_grd)
             sat_global_2 = model_sat(x_sat)
+            if args.pool == 'GAP':
+                grd_global_2 = nn.AdaptiveAvgPool1d(1)(grd_global_2.transpose(-1, -2)).squeeze(2)
+                sat_global_2 = nn.AdaptiveAvgPool1d(1)(sat_global_2.transpose(-1, -2)).squeeze(2)
             grd_global_2 = F.normalize(grd_global_2, dim=1)
             sat_global_2 = F.normalize(sat_global_2, dim=1)
             loss_2 = criterion(grd_global_2, sat_global_2, args)
@@ -484,7 +485,7 @@ def main():
                     help='Resume full model and optimizer state from checkpoint (default: none)')
 
     # cross view setting  
-    parser.add_argument("--emb_size", default=3072, type=int,
+    parser.add_argument("--emb_size", default=384, type=int,
                         help="embedding size")        
     
     parser.add_argument("--img_grd_size", nargs='+', default=(320, 640), type=int,
