@@ -23,6 +23,7 @@ bash train.sh
 bash train_sam.sh
 ```
 or directly run ```python train.py```  or ```python train_sam.py``` by giving other args
+
 **VIGOR**
 ```shell
 bash train_vigor.sh
@@ -42,10 +43,9 @@ bash test_vigor.sh
 ## Trained model
 
 
+CVUSA
 
 
-
-###CVUSA
 
 |  Method  | Pool   |Loss   | ASAM | R@1 | Weight|
 | :------:  |:-----:  | :------:| :------:|:-----:|:-----:|
@@ -58,7 +58,8 @@ bash test_vigor.sh
 |  SAIG-D  | SMD    | Triplet| No | 92.71 | [Google_Drive](https://drive.google.com/file/d/1HqfFb69-lsHe6qqwMoN6kKw8RUhdErP4/view?usp=sharing) |
 |  SAIG-D  | SMD    | Triplet| Yes | 96.08 |[Google_Drive](https://drive.google.com/file/d/1pA2cHnusLRL1E2A6X85ia-rBAJ5rdAZS/view?usp=sharing)  |
 
-###CVACT
+CVACT
+
 
 |  Method  | Pool   |Loss   | ASAM | R@1 | Weight|
 | :------:  |:-----:  | :------:| :------:|:-----:|:-----:|
@@ -71,7 +72,9 @@ bash test_vigor.sh
 |  SAIG-D  | SMD    | Triplet| No | 84.42 | [Google_Drive](https://drive.google.com/file/d/1mHDHmJhJ-UTOWndHy0V8Wp6hAcf0cxS8/view?usp=sharing) |
 |  SAIG-D  | SMD    | Triplet| Yes | 89.21 | [Google_Drive](https://drive.google.com/file/d/18-Zf2DsjToLqUbRHJwhzuj-F2PcoSUcq/view?usp=sharing) |
 
-###VIGOR
+
+VIGOR
+
 
 |  Method  | Pool   |Loss   | ASAM | Same Area R@1 | Cross Area R@1 |
 | :------:  |:-----:  | :------:| :------:|:-----:|:-----:|
